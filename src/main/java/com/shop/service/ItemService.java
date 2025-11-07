@@ -40,7 +40,7 @@ public class ItemService {
 
     public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception{
         // 🚨 1. 현재 사용자 ID 가져와서 설정
-        String currentUsername = com.shop.service.SecurityUtil.getCurrentUsername();
+        String currentUsername = SecurityUtil.getCurrentUsername();
         itemFormDto.setCreatedBy(currentUsername);
         itemFormDto.setModifiedBy(currentUsername);
         //상품 등록
