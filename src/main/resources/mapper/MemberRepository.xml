@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shop.repository.MemberRepository">
+
+    <insert id="save" parameterType="com.shop.entity.Member" >
+
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT MEMBER_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+
+        INSERT INTO member (member_id, name, email, password, address, role, REG_TIME, CREATED_BY, KAKAO_ID)
+        VALUES (#{id}, #{name}, #{email}, #{password}, #{address, jdbcType=VARCHAR}, #{role, jdbcType=VARCHAR}, SYSDATE, #{name, jdbcType=VARCHAR}, #{kakaoId, jdbcType=VARCHAR})
+    </insert>
+
+    <!-- findByEmail 쿼리 수정: KAKAO_ID와 CREATED_BY 컬럼 추가 -->
+    <select id="findByEmail" resultType="com.shop.entity.Member">
+        SELECT
+        member_id AS id, name, email, password, address, role, KAKAO_ID AS kakaoId, CREATED_BY AS createdBy
+        FROM
+        member
+        WHERE
+        email = #{email}
+    </select>
+
+
+    <!-- findById 쿼리 수정: KAKAO_ID와 CREATED_BY 컬럼 추가 -->
+    <select id="findById" resultType="com.shop.entity.Member">
+        SELECT
+        member_id AS id, name, email, password, address, role, KAKAO_ID AS kakaoId, CREATED_BY AS createdBy
+        FROM
+        member
+        WHERE
+        member_id = #{id}
+    </select>
+
+    <select id="findByKakaoId" resultType="com.shop.entity.Member">
+        SELECT
+        member_id AS id, name, email, password, address, role, KAKAO_ID as kakaoId, CREATED_BY AS createdBy
+        FROM
+        member
+        WHERE
+        KAKAO_ID = #{kakaoId}
+    </select>
+</mapper>

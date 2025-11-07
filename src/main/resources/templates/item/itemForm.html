@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<!-- 사용자 스크립트 추가 -->
+<th:block layout:fragment="script">
+
+    <script th:inline="javascript">
+        $(document).ready(function(){
+            var errorMessage = [[${errorMessage}]];
+            if(errorMessage != null){
+                alert(errorMessage);
+            }
+
+            bindDomEvent();
+
+        });
+
+        function bindDomEvent(){
+            $(".custom-file-input").on("change", function() {
+                var fileName = $(this).val().split("\\").pop();  //이미지 파일명
+                var fileExt = fileName.substring(fileName.lastIndexOf(".")+1); // 확장자 추출
+                fileExt = fileExt.toLowerCase(); //소문자 변환
+
+                if(fileExt != "jpg" && fileExt != "jpeg" && fileExt != "gif" && fileExt != "png" && fileExt != "bmp"){
+                    alert("이미지 파일만 등록이 가능합니다.");
+                    return;
+                }
+
+                $(this).siblings(".custom-file-label").html(fileName);
+            });
+        }
+
+    </script>
+
+</th:block>
+
+<!-- 사용자 CSS 추가 -->
+<th:block layout:fragment="css">
+    <style>
+        /* 기존 input-group 마진 대신 Bootstrap mb-3 클래스를 사용하므로 이 CSS는 필요 없을 수 있습니다. */
+        /* .input-group { margin-bottom : 15px } */
+
+        /* 이미지 파일 선택 UI의 라벨 스타일 조정 (Bootstrap 5에서는 form-control 클래스와 input-group-text 조합이 권장됨) */
+        .custom-file-input {
+            /* 숨겨진 input[type=file]이 아니라 직접 보이는 form-control입니다. */
+        }
+
+        /* 필드 에러 메시지 스타일 */
+        .fieldError {
+            color: #dc3545; /* Bootstrap의 danger 색상 */
+            font-size: 0.875em; /* 작은 폰트 크기 */
+            margin-top: 0.25rem;
+        }
+
+        /* 이미지 파일 input-group 내부 라벨을 위한 스타일 (파일 이름 표시용) */
+        .custom-file-label {
+            /* input-group-text 클래스가 이 역할을 대체합니다. */
+        }
+
+        /* 기존 CSS를 Bootstrap 5 클래스로 대체하여 사용하세요. */
+
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10 col-lg-8">
+
+                <div class="card shadow-lg p-4">
+
+                    <p class="h3 text-center mb-4 border-bottom pb-2">
+                        <i class="bi bi-box-seam me-2"></i> 상품 <span th:text="${#strings.isEmpty(itemFormDto.id) ? '등록' : '수정'}">등록</span>
+                    </p>
+
+                    <form role="form" method="post" enctype="multipart/form-data" th:object="${itemFormDto}">
+
+                        <input type="hidden" th:field="*{id}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                        <div class="mb-3">
+                            <label th:for="itemSellStatus" class="form-label">상품 판매 상태</label>
+                            <select th:field="*{itemSellStatus}" class="form-select">
+                                <option value="SELL">판매중</option>
+                                <option value="SOLD_OUT">품절</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label th:for="itemNm" class="form-label">상품명</label>
+                            <input type="text" th:field="*{itemNm}" class="form-control" placeholder="상품명을 입력해주세요">
+                            <p th:if="${#fields.hasErrors('itemNm')}" th:errors="*{itemNm}" class="fieldError mt-1">Incorrect data</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label th:for="price" class="form-label">가격</label>
+                            <input type="number" th:field="*{price}" class="form-control" placeholder="상품의 가격을 입력해주세요">
+                            <p th:if="${#fields.hasErrors('price')}" th:errors="*{price}" class="fieldError mt-1">Incorrect data</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label th:for="stockNumber" class="form-label">재고 수량</label>
+                            <input type="number" th:field="*{stockNumber}" class="form-control" placeholder="상품의 재고를 입력해주세요">
+                            <p th:if="${#fields.hasErrors('stockNumber')}" th:errors="*{stockNumber}" class="fieldError mt-1">Incorrect data</p>
+                        </div>
+
+                        <div class="mb-3">
+                            <label th:for="itemDetail" class="form-label">상품 상세 내용</label>
+                            <textarea class="form-control" rows="5" th:field="*{itemDetail}" placeholder="상세 내용을 입력해주세요"></textarea>
+                            <p th:if="${#fields.hasErrors('itemDetail')}" th:errors="*{itemDetail}" class="fieldError mt-1">Incorrect data</p>
+                        </div>
+
+                        <h5 class="mb-3 mt-4 text-info">상품 이미지 등록</h5>
+
+                        <div th:if="${#lists.isEmpty(itemFormDto.itemImgDtoList)}">
+                            <div class="mb-3" th:each="num: ${#numbers.sequence(1,5)}">
+                                <label class="form-label text-muted">상품 이미지 [[${num}]]</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control custom-file-input" name="itemImgFile">
+                                    <label class="input-group-text custom-file-label" th:text="선택된_파일_없음"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if = "${not #lists.isEmpty(itemFormDto.itemImgDtoList)}">
+                            <div class="mb-3" th:each="itemImgDto, status: ${itemFormDto.itemImgDtoList}">
+                                <label class="form-label text-muted">상품 이미지 [[${status.index+1}]]</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control custom-file-input" name="itemImgFile">
+                                    <input type="hidden" name="itemImgIds" th:value="${itemImgDto.id}">
+                                    <label class="input-group-text custom-file-label" th:text="${not #strings.isEmpty(itemImgDto.oriImgName)} ? ${itemImgDto.oriImgName} : '새로운 이미지 선택'"></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 col-6 mx-auto mt-4">
+                            <button th:if="${#strings.isEmpty(itemFormDto.id)}" th:formaction="@{/admin/item/new}" type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-save me-2"></i> 상품 등록
+                            </button>
+                            <button th:unless="${#strings.isEmpty(itemFormDto.id)}" th:formaction="@{'/admin/item/' + ${itemFormDto.id} }" type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-arrow-up-circle me-2"></i> 상품 수정
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</html>

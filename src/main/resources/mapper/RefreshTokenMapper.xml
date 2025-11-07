@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shop.repository.RefreshTokenMapper">
+
+    <insert id="save">
+        MERGE INTO REFRESH_TOKEN T
+        USING (SELECT #{memberId} AS MEMBER_ID FROM DUAL) S
+        ON (T.MEMBER_ID = S.MEMBER_ID)
+        WHEN MATCHED THEN
+        UPDATE SET
+        T.REFRESH_TOKEN = #{refreshToken},
+        T.EXPIRY_DATE = #{expiryDate}
+        WHEN NOT MATCHED THEN
+        INSERT (MEMBER_ID, REFRESH_TOKEN, EXPIRY_DATE)
+        VALUES (#{memberId}, #{refreshToken}, #{expiryDate})
+    </insert>
+
+    <select id="findByMemberId" resultType="com.shop.entity.RefreshToken">
+        SELECT *
+        FROM REFRESH_TOKEN
+        WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <delete id="deleteByMemberId">
+        DELETE FROM REFRESH_TOKEN
+        WHERE MEMBER_ID = #{memberId}
+    </delete>
+
+    <select id="findByMemberIdAndToken" resultType="com.shop.entity.RefreshToken">
+        SELECT *
+        FROM REFRESH_TOKEN
+        WHERE MEMBER_ID = #{param1} AND REFRESH_TOKEN = #{param2}
+    </select>
+</mapper>

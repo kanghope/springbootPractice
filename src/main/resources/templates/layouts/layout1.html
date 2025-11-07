@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!--link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"-->
+    <link th:href="@{/css/layout1.css}" rel="stylesheet">
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <style>
+        /* 네비게이션 링크에 마우스 오버 시 스타일 (밝은 배경에 맞춤) */
+        .navbar-light .navbar-nav .nav-link {
+            /* 텍스트 색상을 대비되게 유지 */
+            color: rgba(0, 0, 0, 0.7);
+            /* 부드러운 효과를 위한 트랜지션 추가 */
+            transition: background-color 0.2s ease, color 0.2s ease;
+            border-radius: 0.25rem; /* 모서리를 둥글게 처리 */
+            padding: 0.5rem 0.75rem; /* 클릭 영역 확보 및 공간 주기 */
+        }
+
+        /* 마우스 오버(Hover) 시 배경색 및 텍스트 색상 변경 */
+        .navbar-light .navbar-nav .nav-item:hover .nav-link {
+            /* 옅은 파란색 계열의 배경색 (부트스트랩 primary 색상 기반) */
+            background-color: rgba(13, 110, 253, 0.1);
+            /* 텍스트 색상은 조금 더 진하게 */
+            color: #0d6efd;
+        }
+
+        /* 활성화된 링크 스타일 (현재 페이지 강조, 선택 사항) */
+        .navbar-light .navbar-nav .nav-link.active {
+            font-weight: bold;
+            color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+    </style>
+
+    <th:block layout:fragment="script"></th:block>
+    <th:block layout:fragment="css"></th:block>
+
+</head>
+<body>
+
+    <div th:replace="fragments/header::header"></div>
+
+    <div layout:fragment="content" class="content">
+
+    </div>
+
+    <div th:replace="fragments/footer::footer"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <th:block layout:fragment="script"></th:block>
+</body>
+</html>

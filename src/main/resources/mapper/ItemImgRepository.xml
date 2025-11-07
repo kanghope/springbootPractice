@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shop.repository.ItemImgRepository">
+
+    <resultMap id="itemImgResultMap" type="com.shop.entity.ItemImg">
+        <id property="id" column="ITEM_IMG_ID"/>
+        <result property="itemId" column="ITEM_ID"/>
+        <result property="imgName" column="IMG_NAME"/>
+        <result property="oriImgName" column="ORI_IMG_NAME"/>
+        <result property="imgUrl" column="IMG_URL"/>
+        <result property="repImgYn" column="REP_IMG_YN"/>
+        <result property="regTime" column="REG_TIME"/>
+        <result property="updateTime" column="UPDATE_TIME"/>
+    </resultMap>
+
+    <select id="findByItemIdOrderByIdAsc" resultMap="itemImgResultMap">
+        SELECT
+        ITEM_IMG_ID,
+        ITEM_ID,
+        IMG_NAME,
+        ORI_IMG_NAME,
+        IMG_URL,
+        REP_IMG_YN,
+        REG_TIME,
+        UPDATE_TIME
+        FROM
+        ITEM_IMG
+        WHERE
+        ITEM_ID = #{itemId}
+        ORDER BY
+        ITEM_IMG_ID ASC
+    </select>
+
+    <select id="findByItemIdAndRepimgYn" resultMap="itemImgResultMap">
+        SELECT
+        ITEM_IMG_ID,
+        ITEM_ID,
+        IMG_NAME,
+        ORI_IMG_NAME,
+        IMG_URL,
+        REP_IMG_YN
+        FROM
+        ITEM_IMG
+        WHERE
+        ITEM_ID = #{param1}
+        AND
+        REP_IMG_YN = #{param2}
+    </select>
+
+    <insert id="save" parameterType="com.shop.entity.ItemImg">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT ITEM_IMG_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+
+        INSERT INTO ITEM_IMG
+        (
+        ITEM_IMG_ID,
+        ITEM_ID,
+        IMG_NAME,
+        ORI_IMG_NAME,
+        IMG_URL,
+        REP_IMG_YN,
+        REG_TIME
+        )
+        VALUES
+        (
+        #{id},
+        #{itemId},
+        #{imgName},
+        #{oriImgName},
+        #{imgUrl},
+        #{repImgYn},
+        SYSDATE
+        )
+    </insert>
+
+    <select id="findById" resultMap="itemImgResultMap">
+        SELECT
+        ITEM_IMG_ID,
+        ITEM_ID,
+        IMG_NAME,
+        ORI_IMG_NAME,
+        IMG_URL,
+        REP_IMG_YN
+        FROM
+        ITEM_IMG
+        WHERE
+        ITEM_IMG_ID = #{id}
+    </select>
+
+    <update id="update" parameterType="com.shop.entity.ItemImg">
+        UPDATE ITEM_IMG
+        SET
+        IMG_NAME = #{imgName},
+        ITEM_ID = #{itemId}
+        ORI_IMG_NAME = #{oriImgName},
+        IMG_URL = #{imgUrl},
+        REP_IMG_YN = #{repImgYn},
+        UPDATE_TIME = SYSDATE
+        WHERE
+        ITEM_IMG_ID = #{id}
+    </update>
+
+</mapper>

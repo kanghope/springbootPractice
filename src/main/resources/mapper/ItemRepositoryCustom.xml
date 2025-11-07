@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shop.repository.ItemRepositoryCustom">
+    <resultMap id="itemResultMap" type="com.shop.entity.Item">
+        <id property="id" column="ITEM_ID"/>
+        <result property="itemNm" column="ITEM_NM"/>
+        <result property="price" column="PRICE"/>
+        <result property="stockNumber" column="STOCK_NUMBER"/>
+        <result property="itemDetail" column="ITEM_DETAIL"/>
+        <result property="itemSellStatus" column="ITEM_SELL_STATUS"/>
+        <result property="regTime" column="REG_TIME"/>
+        <result property="updateTime" column="UPDATE_TIME"/>
+        <result property="modifiedBy" column="MODIFIED_BY"/>
+        <result property="createdBy" column="CREATED_BY"/>
+    </resultMap>
+
+    <sql id="adminItemWhereClause">
+        <where>
+            <if test="searchDto.searchSellStatus != null">
+                AND ITEM_SELL_STATUS = #{searchDto.searchSellStatus}
+            </if>
+
+            <if test="searchDto.searchDateType != null and searchDto.searchDateType != '' and searchDto.searchDateType != 'all'">
+                <choose>
+                    <when test="searchDto.searchDateType == '1d'">
+                        AND REG_TIME >= (SYSDATE - 1)
+                    </when>
+                    <when test="searchDto.searchDateType == '1w'">
+                        AND REG_TIME >= (SYSDATE - 7)
+                    </when>
+                    <when test="searchDto.searchDateType == '1m'">
+                        AND REG_TIME >= ADD_MONTHS(SYSDATE, -1)
+                    </when>
+                    <when test="searchDto.searchDateType == '6m'">
+                        AND REG_TIME >= ADD_MONTHS(SYSDATE, -6)
+                    </when>
+                </choose>
+            </if>
+
+            <if test="searchDto.searchQuery != null and searchDto.searchQuery != ''">
+                <choose>
+                    <when test="searchDto.searchBy == 'itemNm'">
+                        AND ITEM_NM LIKE '%' || #{searchDto.searchQuery} || '%'
+                    </when>
+                    <when test="searchDto.searchBy == 'createdBy'">
+                        AND CREATED_BY LIKE '%' || #{searchDto.searchQuery} || '%'
+                    </when>
+                </choose>
+            </if>
+        </where>
+    </sql>
+
+    <select id="getAdminItemPage" parameterType="map" resultMap="itemResultMap">
+        SELECT *
+        FROM ITEM
+        <include refid="adminItemWhereClause"/>
+        ORDER BY ITEM_ID DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
+
+    <select id="getAdminItemCount" parameterType="map" resultType="long">
+        SELECT COUNT(*)
+        FROM ITEM
+        <include refid="adminItemWhereClause"/>
+    </select>
+
+<!--
+    <select id="getMainItemPage" parameterType="map" resultType="com.shop.dto.MainItemDto">
+        SELECT
+        I.ITEM_ID AS id,
+        I.ITEM_NM AS itemNm,
+        I.ITEM_DETAIL AS itemDetail,
+        IMG.IMG_URL AS imgUrl,
+        I.PRICE AS price
+        FROM ITEM I
+        INNER JOIN ITEM_IMG IMG ON I.ITEM_ID = IMG.ITEM_ID
+        <where>
+            AND IMG.REP_IMG_YN = 'Y'
+
+            <if test="searchDto.searchQuery != null and searchDto.searchQuery != ''">
+                AND I.ITEM_NM LIKE '%' || #{searchDto.searchQuery} || '%'
+            </if>
+        </where>
+        ORDER BY I.ITEM_ID DESC
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{limit} ROWS ONLY
+    </select>
+-->
+    <select id="getMainItemCount" parameterType="map" resultType="long">
+        SELECT COUNT(I.ITEM_ID)
+        FROM ITEM I
+        INNER JOIN ITEM_IMG IMG ON I.ITEM_ID = IMG.ITEM_ID
+        <where>
+            AND IMG.REP_IMG_YN = 'Y'
+            <if test="searchDto.searchQuery != null and searchDto.searchQuery != ''">
+                AND I.ITEM_NM LIKE '%' || #{searchDto.searchQuery} || '%'
+            </if>
+        </where>
+    </select>
+</mapper>
