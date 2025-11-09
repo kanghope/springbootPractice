@@ -1,12 +1,23 @@
 package com.shop.service;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import com.shop.config.CustomUserDetails; // 🚨 CustomUserDetails 임포트
 public class SecurityUtil {
+
+    // Member ID(PK)를 가져오려면 이전에 사용되던 로직을 사용합니다.
+    public static Long getCurrentMemberId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // ID를 반환할 수도 있습니다.
+        // JWT의 subject가 ID라면, Long.valueOf(authentication.getName()); 을 사용
+        return Long.valueOf(authentication.getName()); // subject가 ID라고 가정
+    }
+
     /**
      * 현재 로그인한 사용자의 ID (Username)를 반환합니다.
      */
+    /*
     public static String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
@@ -32,5 +43,24 @@ public class SecurityUtil {
         else {
             return authentication.getName();
         }
+    }*/
+    /**
+     * ⭐️ CREATED_BY/MODIFIED_BY 필드에 저장할 사용자 '이름(Name)'을 가져옵니다.
+     * @return String 사용자의 이름
+     */
+    public static String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails) {
+            // ⭐️ CustomUserDetails에서 특별히 정의한 '이름' Getter를 사용합니다.
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            return customUserDetails.getCreatedBy();
+        }
+
+        // 인증되지 않았거나, 토큰 인증 등 다른 방식으로 주입된 경우 (기존 Principal 값 반환)
+        if (authentication != null) {
+            return authentication.getName();
+        }
+        throw new IllegalStateException("현재 Security Context에 인증 정보가 없습니다.");
     }
 }
