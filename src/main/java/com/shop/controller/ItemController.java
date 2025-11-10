@@ -171,7 +171,8 @@ public class ItemController {
     // 4. GET /api/admin/items (상품 관리 목록 및 검색/페이징)
     // -------------------------------------------------------------------------
     // 기존의 /admin/items/{page} 방식 대신, 쿼리 파라미터로 page를 받는 RESTful 방식을 사용합니다.
-    @GetMapping(value = {"/items/","/items/{page}"})
+    //@GetMapping(value = {"/items/","/items/{page}"})
+    @GetMapping(value = "/items") // ⭐️ 경로 변수 없이 '/items'만 남깁니다.
     public ResponseEntity<Page<?>> itemManage(ItemSearchDto itemSearchDto, // 쿼리 파라미터로 페이지 번호를 받습니다. page는 0부터 시작합니다.
                                               @RequestParam(value = "page", defaultValue = "0") int page,
                                               @RequestParam(value = "size", defaultValue = "3") int size)
