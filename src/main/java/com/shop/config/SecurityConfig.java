@@ -71,7 +71,8 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/img/**",
                                 // ⭐️ [필수 추가] 메인 페이지 상품 목록 API 허용
-                                "/items"
+                                "/api/items",
+                                "/api/item/**"
                         ).permitAll()
 
                         // 관리자 경로는 ADMIN 권한 요구

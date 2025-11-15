@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController; // ⭐️ @RestController로 변경
 import java.util.Optional;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.shop.dto.ItemFormDto; // 또는 MainItemDetailDto 같은 경량화된 DTO
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 
 // 이 컨트롤러는 API 응답을 처리하도록 변경합니다.
 @RestController // JSON 데이터를 반환합니다.
@@ -45,6 +51,24 @@ public class MainController {
 
         // @RestController 덕분에 Page 객체가 자동으로 JSON으로 변환되어 응답됩니다.
         return items;
+    }
+
+    /**
+     * ⭐️ 일반 사용자용 상품 상세 조회 API
+     * GET /api/item/{itemId}
+     */
+    @GetMapping(value = "/item/{itemId}")
+    public ResponseEntity<?> publicItemDtl(@PathVariable("itemId") Long itemId){
+        try{
+            // 상품 ID로 DTO 조회 (일반 사용자에게 필요한 정보만 포함된 DTO 사용을 권장)
+            ItemFormDto itemFormDto = itemService.getItemDtl(itemId); // 현재는 기존 DTO 재사용
+            return ResponseEntity.ok(itemFormDto);
+        }
+        catch(Exception e)
+        {
+            // 404/500 등의 오류 처리
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "존재하지 않는 상품입니다.");
+        }
     }
 
 }
