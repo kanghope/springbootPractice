@@ -14,18 +14,20 @@ public class CustomUserDetails extends User {
     // Member 엔티티에서 CREATED_BY로 사용할 이름 정보를 저장하는 필드
     private final String name;
     private final Long memberId;
+    private final String Email;
 
     /**
      * Member 객체를 받아 Spring Security 인증 정보 및 추가 이름 정보를 설정합니다.
      */
     // ⭐️ JWT 인증을 위한 새로운 생성자 추가 ⭐️
 
-    public CustomUserDetails(String memberIdString, String name, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(String memberIdString, String name, String memberEmail, Collection<? extends GrantedAuthority> authorities) {
         super(
                 memberIdString, // Principal 값 (ID)
                 "",             // JWT 인증이므로 비밀번호는 빈 문자열
                 authorities
         );
+        this.Email = memberEmail;//이메일정보 저장
         this.memberId = Long.valueOf(memberIdString);
         this.name = name; // 사용자 이름 저장
     }
@@ -39,6 +41,7 @@ public class CustomUserDetails extends User {
         );
 
         // 2. 추가 필드 초기화: Member 엔티티의 이름을 저장
+        this.Email = member.getEmail();
         this.name = member.getName();
         this.memberId = member.getId();
     }
@@ -64,5 +67,9 @@ public class CustomUserDetails extends User {
 
     public Long getMemberId() {
         return this.memberId;
+    }
+
+    public String getEmail() {
+        return this.Email;
     }
 }

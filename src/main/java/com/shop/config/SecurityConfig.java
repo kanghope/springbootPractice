@@ -78,6 +78,9 @@ public class SecurityConfig {
                         // 관리자 경로는 ADMIN 권한 요구
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
+                        // ⭐️ [추가] 주문 관련 API는 인증된 사용자만 접근 가능하도록 명시
+                        .requestMatchers("/api/order/**").authenticated()
+
                         // 나머지 모든 API 경로는 인증(토큰) 필요
                         .anyRequest().authenticated()
                 )
