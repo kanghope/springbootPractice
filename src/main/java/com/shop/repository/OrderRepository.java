@@ -4,6 +4,8 @@ import com.shop.entity.Order; // Order 엔티티/모델 사용 가정
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
+import java.util.Optional; // Optional 추가
+
 @Mapper // 스프링 부트에서 이 인터페이스를 매퍼로 인식하게 함
 public interface OrderRepository {
     /**
@@ -21,5 +23,14 @@ public interface OrderRepository {
      * @return 전체 주문 개수
      */
     Long countOrder(@Param("email") String email);
+
+    // 1. 주문 ID로 단건 조회 (findById)
+    Optional<Order> findById(@Param("orderId") Long orderId);
+
+    // 2. 주문 등록 (save)
+    int save(Order order);
+
+    // 3. 주문 상태 업데이트 (cancelOrder 지원)
+    int updateStatus(Order order);
 }
 

@@ -23,4 +23,7 @@ public interface OrderItemRepository {
 
     // 6. ID 존재 여부 확인 (existsById)
     boolean existsById(Long id);
+
+    // 7. 주문 ID로 주문 상품 목록 조회 (findByOrderId)
+    List<OrderItem> findByOrderId(Long orderId);
 }

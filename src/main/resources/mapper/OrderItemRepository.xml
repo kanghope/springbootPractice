@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.repository.OrderItemRepository">
+
+    <resultMap id="orderItemResultMap" type="com.shop.entity.OrderItem">
+        <id property="orderItemId" column="ORDER_ITEM_ID"/>
+        <result property="orderId" column="ORDER_ID"/>
+        <result property="itemId" column="ITEM_ID"/>
+        <result property="orderPrice" column="ORDER_PRICE"/>
+        <result property="count" column="COUNT"/>
+        <result property="regTime" column="REG_DATE"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="com.shop.entity.OrderItem" useGeneratedKeys="true" keyProperty="orderItemId">
+        <selectKey keyProperty="orderItemId" resultType="Long" order="BEFORE">
+            SELECT ORDER_ITEM_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO ORDER_ITEM (ORDER_ITEM_ID, ORDER_ID, ITEM_ID, ORDER_PRICE, COUNT, REG_DATE)
+        VALUES (#{orderItemId}, #{orderId}, #{itemId}, #{orderPrice}, #{count}, SYSDATE)
+    </insert>
+
+    <select id="findByOrderId" resultMap="orderItemResultMap">
+        SELECT
+        ORDER_ITEM_ID, ORDER_ID, ITEM_ID, ORDER_PRICE, COUNT, REG_DATE
+        FROM ORDER_ITEM
+        WHERE ORDER_ID = #{orderId}
+    </select>
+
+</mapper>

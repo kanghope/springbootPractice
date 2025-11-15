@@ -127,7 +127,7 @@ public class ItemController {
                                         BindingResult bindingResult, @RequestPart(value = "itemImgFile", required = false) List<MultipartFile> itemImgFileList)
     {
         // PathVariable의 ID와 DTO의 ID 일치 확인 (필요시)
-        if (itemFormDto.getId() == null || !itemFormDto.getId().equals(itemId)) {
+         if (itemFormDto.getId() == null || !itemFormDto.getId().equals(itemId)) {
             return new ResponseEntity<>("요청 경로와 상품 ID가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
         // 1. 유효성 검사 실패 (400 Bad Request)
@@ -137,8 +137,11 @@ public class ItemController {
                     .collect(Collectors.toList());
             return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
         }
-
-        boolean isImgRequired = (itemImgFileList == null || itemImgFileList.get(0).isEmpty()) && itemFormDto.getId() == null;
+/*
+        boolean isImgRequired = (itemImgFileList == null ||
+                itemImgFileList.isEmpty() || // ⭐️ [추가] 리스트 자체가 비어있는지 확인
+                itemImgFileList.get(0).isEmpty()) &&
+                itemFormDto.getId() == null;
         if(isImgRequired)
         {
             //model.addAttribute("errorMessage","첫번째 상품 이미지는 필수 입력 값 입니다.");
@@ -146,7 +149,7 @@ public class ItemController {
 
             return new ResponseEntity<>("첫번째 상품 이미지는 필수 입력 값 입니다.", HttpStatus.BAD_REQUEST);
         }
-
+*/
         try
         {
             Long updatedItemId = itemService.updateItem(itemFormDto, itemImgFileList);

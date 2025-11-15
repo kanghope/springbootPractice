@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shop.repository.OrderRepository">
+
+    <resultMap id="orderResultMap" type="com.shop.entity.Order">
+        <id property="orderId" column="ORDER_ID"/>
+        <result property="memberId" column="MEMBER_ID"/>
+        <result property="orderDate" column="ORDER_DATE"/>
+        <result property="orderStatus" column="ORDER_STATUS" typeHandler="com.shop.handler.OrderStatusTypeHandler"/>
+    </resultMap>
+
+    <insert id="save" parameterType="com.shop.entity.Order" useGeneratedKeys="true" keyProperty="orderId">
+        <selectKey keyProperty="orderId" resultType="Long" order="BEFORE">
+            SELECT ORDER_SEQ.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO ORDERS (ORDER_ID, MEMBER_ID, ORDER_DATE, ORDER_STATUS)
+        VALUES (#{orderId}, #{memberId}, SYSDATE, #{orderStatus})
+    </insert>
+
+    <update id="updateStatus" parameterType="com.shop.entity.Order">
+        UPDATE ORDERS
+        SET ORDER_STATUS = #{orderStatus}, UPDATE_TIME = SYSDATE
+        WHERE ORDER_ID = #{orderId}
+    </update>
+
+    <select id="findById" resultMap="orderResultMap">
+        SELECT
+        O.ORDER_ID, O.MEMBER_ID, O.ORDER_DATE, O.ORDER_STATUS
+        FROM ORDERS O
+        WHERE O.ORDER_ID = #{orderId}
+    </select>
+
+    <select id="findOrders" resultMap="orderResultMap">
+        SELECT
+        T.*
+        FROM (
+        SELECT
+        O.ORDER_ID, O.MEMBER_ID, O.ORDER_DATE, O.ORDER_STATUS,
+        ROWNUM AS RNUM
+        FROM ORDERS O
+        JOIN MEMBER M ON O.MEMBER_ID = M.MEMBER_ID
+        WHERE M.EMAIL = #{email}
+        ORDER BY O.ORDER_DATE DESC
+        ) T
+        WHERE RNUM BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+    </select>
+
+    <select id="countOrder" resultType="Long">
+        SELECT
+        COUNT(O.ORDER_ID)
+        FROM ORDERS O
+        JOIN MEMBER M ON O.MEMBER_ID = M.MEMBER_ID
+        WHERE M.EMAIL = #{email}
+    </select>
+
+</mapper>

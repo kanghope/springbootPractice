@@ -80,27 +80,18 @@ public class ItemImgService {
     // 🚨 주의: 메서드 시그니처를 ItemImg 엔티티를 받도록 변경해야 합니다.
     public void updateItemImg(ItemImg itemImg, MultipartFile itemImgFile) throws Exception{
 
-        // 파일이 없으면 처리할 내용이 없으므로 종료
-        if (itemImgFile.isEmpty()) {
-            return;
-        }
-
-        // 파일 업로드 및 URL 생성 (INSERT/UPDATE 공통 로직)
-        String oriImgName = itemImgFile.getOriginalFilename();
-        String imgName = "";
-        String imgUrl = "";
-
-        // 파일 업로드
-        if (!StringUtils.isEmpty(oriImgName)) {
-            imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
-            imgUrl = "/images/item/" + imgName;
-        }
-
         // 1. 기존 이미지(UPDATE)인지 새로운 이미지(INSERT)인지 확인
         if (itemImg.getId() != null && itemImg.getId() > 0) {
             // ----------------------------------------------------
-            // 💡 UPDATE: ItemImg ID가 존재하면 기존 이미지 수정
+            // 💡 UPDATE: ItemImg ID가 존재하면 기존 이미지 수정 또는 유지
             // ----------------------------------------------------
+
+            // **[수정] 파일이 비어 있으면 기존 이미지를 유지하고 즉시 종료합니다.**
+            if (itemImgFile.isEmpty()) {
+                return; // ⭐️ 기존 이미지 정보를 유지하고, DB 업데이트 로직은 건너뜁니다.
+            }
+
+            // 파일이 비어있지 않다면 (새로운 파일이 선택되었다면) 나머지 로직 수행
 
             // DB에서 기존 정보 조회 (기존 파일 이름 확인을 위해)
             ItemImg savedItemImg = itemImgRepository.findById(itemImg.getId());
@@ -114,17 +105,31 @@ public class ItemImgService {
                 fileService.deleteFile(itemImgLocation + "/" + savedItemImg.getImgName());
             }
 
+            // 새 파일 업로드 및 URL 생성
+            String oriImgName = itemImgFile.getOriginalFilename();
+            String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
+            String imgUrl = "/images/item/" + imgName;
+
             // 엔티티 업데이트 및 DB 반영
             savedItemImg.updateItemImg(oriImgName, imgName, imgUrl);
-            itemImgRepository.update(savedItemImg);
+            itemImgRepository.update(savedItemImg); // DB UPDATE 실행
 
         } else {
             // ----------------------------------------------------
             // 💡 INSERT: ItemImg ID가 없으면 새로운 이미지 등록
             // ----------------------------------------------------
 
+            // **[수정] 파일이 비어 있으면 INSERT를 시도할 필요가 없으므로 종료합니다.**
+            if (itemImgFile.isEmpty()) {
+                return; // ⭐️ 파일이 없으면 새로운 이미지를 등록할 수 없습니다.
+            }
+
+            // 파일 업로드 및 URL 생성
+            String oriImgName = itemImgFile.getOriginalFilename();
+            String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
+            String imgUrl = "/images/item/" + imgName;
+
             // ItemImg 엔티티에 파일 정보 설정
-            // (itemId와 repImgYn은 이 메서드를 호출하기 전에 이미 설정되어 있어야 합니다.)
             itemImg.updateItemImg(oriImgName, imgName, imgUrl);
 
             // INSERT 실행
