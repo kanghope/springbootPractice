@@ -24,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.shop.config.CustomUserDetails; // CustomUserDetails 임포트 필요
+import com.shop.dto.OrderIdsDto; // ⭐️ 새로 추가된 DTO 임포트
 
 @RestController // 💡 @Controller + @ResponseBody 역할
 @RequiredArgsConstructor
@@ -119,7 +120,7 @@ public class OrderController {
         }
 
         // 주문 이력 목록 및 페이징 정보 조회
-        Page<OrderHistDto> ordersHistDtoPage = orderService.getOrderList(principal.getName(), pageable);
+        Page<OrderHistDto> ordersHistDtoPage = orderService.getOrderList(email, pageable);
 
         // Page<OrderHistDto> 객체를 JSON 응답 본문에 담아 200 OK로 반환
         return ResponseEntity.ok(ordersHistDtoPage);
@@ -131,8 +132,25 @@ public class OrderController {
     @PostMapping("/orders/{orderId}/cancel") // 💡 경로를 orders로 변경
     public ResponseEntity<String> cancelOrder(@PathVariable("orderId") Long orderId, Principal principal) {
 
+        String email ;
+        try {
+            // SecurityContext에서 인증 객체를 가져옵니다.
+            Object principalObject = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+            if (principalObject instanceof CustomUserDetails) {
+                // CustomUserDetails로 형 변환 후 getEmail() 메서드를 사용
+                email = ((CustomUserDetails) principalObject).getEmail();
+            } else {
+                // CustomUserDetails가 아닌 경우, 기본적으로 getName()을 사용 (백업 로직)
+                email = principal.getName();
+            }
+        } catch (Exception e) {
+            // 인증 정보가 아예 없는 경우 (토큰이 없거나 만료된 경우), SecurityConfig에서 401이 먼저 처리되지만
+            // 안전을 위해 예외 처리
+            return new ResponseEntity<>("인증된 사용자 정보가 없습니다.", HttpStatus.UNAUTHORIZED); // 401
+        }
         // 1. 주문 권한 검증
-        if (!orderService.validateOrder(orderId, principal.getName())) {
+        if (!orderService.validateOrder(orderId, email)) {
             return new ResponseEntity<String>("주문 취소 권한이 없습니다.", HttpStatus.FORBIDDEN); // 403 Forbidden
         }
 
@@ -148,5 +166,69 @@ public class OrderController {
             // 5. 기타 오류 (500 Internal Server Error)
             return new ResponseEntity<String>("주문 취소 중 에러가 발생하였습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // ⭐️ 4. POST /api/order/orders/bulk-cancel (선택 주문 일괄 취소) - [NEW]
+    // -------------------------------------------------------------------------
+    @PostMapping("/orders/bulk-cancel")
+    public ResponseEntity<?> bulkCancelOrders(
+            @RequestBody @Valid OrderIdsDto orderIdsDto,
+            BindingResult bindingResult,
+            Principal principal) {
+
+        // 1. 유효성 검사
+        if (bindingResult.hasErrors()) {
+            // DTO 유효성 검사 실패 시 에러 메시지 반환 (400 Bad Request)
+            String errorMessage = bindingResult.getAllErrors().stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining("; "));
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+
+        List<Long> orderIds = orderIdsDto.getOrderIds();
+       // String email = principal.getName();
+        String email ;
+        try {
+            // SecurityContext에서 인증 객체를 가져옵니다.
+            Object principalObject = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+            if (principalObject instanceof CustomUserDetails) {
+                // CustomUserDetails로 형 변환 후 getEmail() 메서드를 사용
+                email = ((CustomUserDetails) principalObject).getEmail();
+            } else {
+                // CustomUserDetails가 아닌 경우, 기본적으로 getName()을 사용 (백업 로직)
+                email = principal.getName();
+            }
+        } catch (Exception e) {
+            // 인증 정보가 아예 없는 경우 (토큰이 없거나 만료된 경우), SecurityConfig에서 401이 먼저 처리되지만
+            // 안전을 위해 예외 처리
+            return new ResponseEntity<>("인증된 사용자 정보가 없습니다.", HttpStatus.UNAUTHORIZED); // 401
+        }
+
+        int successCount = 0;
+        int failCount = 0;
+
+        for (Long orderId : orderIds) {
+            try {
+                // 2. 각 주문에 대해 권한 검증 및 취소 시도
+                if (orderService.validateOrder(orderId, email)) {
+                    orderService.cancelOrder(orderId);
+                    successCount++;
+                } else {
+                    // 권한이 없거나 유효하지 않은 주문 ID
+                    failCount++;
+                }
+            } catch (Exception e) {
+                // 이미 취소되었거나 기타 서비스 로직 오류
+                failCount++;
+            }
+        }
+
+        String responseMessage = String.format("총 %d건 중 %d건 주문 취소 성공, %d건 실패.",
+                orderIds.size(), successCount, failCount);
+
+        // 3. 일괄 취소 결과 반환 (200 OK)
+        return new ResponseEntity<String>(responseMessage, HttpStatus.OK);
     }
 }

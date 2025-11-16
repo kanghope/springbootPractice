@@ -19,7 +19,7 @@
 
     <update id="updateStatus" parameterType="com.shop.entity.Order">
         UPDATE ORDERS
-        SET ORDER_STATUS = #{orderStatus}, UPDATE_TIME = SYSDATE
+        SET ORDER_STATUS = #{orderStatus}, ORDER_DATE = SYSDATE
         WHERE ORDER_ID = #{orderId}
     </update>
 
