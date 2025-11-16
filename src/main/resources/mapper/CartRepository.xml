@@ -3,11 +3,22 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.shop.repository.CartRepository">
+    <resultMap id="cartResultMap" type="com.shop.entity.Cart">
+        <id property="cartId" column="CART_ID" />
+        <result property="memberId" column="MEMBER_ID" />
+        <result property="regTime" column="REG_TIME" />
+    </resultMap>
 
-    <select id="findByMemberId" resultType="com.shop.entity.Cart">
-        SELECT *
+    <select id="findByMemberId" resultMap="cartResultMap">
+        SELECT CART_ID, MEMBER_ID, REG_TIME
         FROM CART
         WHERE MEMBER_ID = #{memberId}
+    </select>
+
+    <select id="findById" resultMap="cartResultMap">
+        SELECT CART_ID, MEMBER_ID, REG_TIME
+        FROM CART
+        WHERE CART_ID = #{cartId}
     </select>
 
     <insert id="save" parameterType="com.shop.entity.Cart">

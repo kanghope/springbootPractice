@@ -79,7 +79,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         // ⭐️ [추가] 주문 관련 API는 인증된 사용자만 접근 가능하도록 명시
-                        .requestMatchers("/api/order/**").authenticated()
+                        .requestMatchers("/api/order","/api/order/**").authenticated()
+                        // ⭐️ [추가] 장바구니 관련 api는 인증된 사용자만 접근 가능하도록 명시
+                        .requestMatchers("/api/cart","/api/cart/**").authenticated()
+
 
                         // 나머지 모든 API 경로는 인증(토큰) 필요
                         .anyRequest().authenticated()
