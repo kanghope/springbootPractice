@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
 
 @Mapper // MyBatis 매퍼 인터페이스로 지정
 public interface CartItemRepository {
@@ -28,4 +29,5 @@ public interface CartItemRepository {
     // 6. 장바구니 상세 목록 조회 (DTO Projection Query)
     // 이 메서드는 XML에서 복잡한 조인 쿼리로 구현되어야 합니다.
     List<CartDetailDto> findCartDetailDtoList(Long cartId);
+    //List<CartDetailDto> findCartDetailDtoList(Map<String, Object> paramMap);
 }
