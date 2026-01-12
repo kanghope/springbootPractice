@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shop.repository.CartItemRepository">
+
+    <resultMap id="cartItemResultMap" type="com.shop.entity.CartItem">
+        <id property="cartItemId" column="CART_ITEM_ID"/>
+        <result property="cartId" column="CART_ID"/>
+        <result property="itemId" column="ITEM_ID"/>
+        <result property="count" column="COUNT"/>
+        <result property="regTime" column="REG_TIME"/>
+    </resultMap>
+
+    <insert id="save" parameterType="com.shop.entity.CartItem">
+        INSERT INTO CART_ITEM (CART_ID, ITEM_ID, COUNT, REG_TIME)
+        VALUES (#{cartId}, #{itemId}, #{count}, SYSDATE)
+    </insert>
+
+    <select id="findById" resultMap="cartItemResultMap">
+        SELECT *
+        FROM CART_ITEM
+        WHERE CART_ITEM_ID = #{cartItemId}
+    </select>
+
+    <select id="findByCartIdAndItemId" resultMap="cartItemResultMap">
+        SELECT *
+        FROM CART_ITEM
+        WHERE CART_ID = #{cartId} AND ITEM_ID = #{itemId}
+    </select>
+
+    <delete id="delete">
+        DELETE FROM CART_ITEM WHERE CART_ITEM_ID = #{cartItemId}
+    </delete>
+
+    <update id="updateCount" parameterType="com.shop.entity.CartItem">
+        UPDATE CART_ITEM
+        SET COUNT = #{count}
+        WHERE CART_ITEM_ID = #{cartItemId}
+    </update>
+    <!--, UPDATE_TIME = SYSDATE*/-->
+    <select id="findCartDetailDtoList" resultType="com.shop.dto.CartDetailDto">
+        SELECT
+        ci.CART_ITEM_ID AS cartItemId,
+        i.ITEM_NM AS itemNm,
+        i.PRICE AS price,
+        ci.COUNT AS count,
+        im.IMG_URL AS imgUrl
+        FROM CART_ITEM ci
+        JOIN ITEM i ON ci.ITEM_ID = i.ITEM_ID
+        JOIN ITEM_IMG im ON ci.ITEM_ID = im.ITEM_ID
+        WHERE ci.CART_ID = #{cartId}
+        AND im.REP_IMG_YN = 'Y'
+        ORDER BY ci.REG_TIME DESC
+    </select>
+</mapper>

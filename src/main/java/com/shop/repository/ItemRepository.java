@@ -16,6 +16,9 @@ public interface ItemRepository {
     Item findById(Long id);
     void delete(Long id);
 
+    // ⭐ 추가: 재고만 업데이트하는 메서드 정의 (MyBatis 쿼리 작성이 필요함)
+    int updateStock(Item item);
+
     // 1. findByItemNm
     List<Item> findByItemNm(String itemNm);
 

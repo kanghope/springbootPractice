@@ -45,6 +45,14 @@
         WHERE ITEM_ID = #{id}
     </update>
 
+    <update id="updateStock" parameterType="com.shop.entity.Item">
+        UPDATE ITEM
+        SET
+        STOCK_NUMBER = #{stockNumber},
+        UPDATE_TIME = SYSDATE
+        WHERE ITEM_ID = #{id}
+    </update>
+
     <select id="findByItemNm" resultMap="itemResultMap">
         SELECT * FROM ITEM WHERE ITEM_NM = #{itemNm}
     </select>

@@ -1,6 +1,6 @@
 package com.shop.entity;
 import java.time.LocalDateTime;
-public class OrderItem {
+public class OrderItem  {
     private Long orderItemId; // 주문 상품 ID (DB 컬럼 이름과 일치하도록 변경)
 
     // JPA의 객체 연관 관계 대신 ID 값을 사용합니다.
@@ -80,18 +80,16 @@ public class OrderItem {
     // =======================================================
 
     /**
-     * 주문 상품 생성 팩토리 메서드. Item 객체를 받아 가격과 재고 로직을 처리합니다.
-     * 주의: MyBatis 환경에서는 Item 객체를 직접 사용하는 대신, ItemService를 통해
-     * 가격을 조회하고 재고를 감소시키는 비즈니스 로직을 서비스 계층에서 분리해야 더 명확합니다.
-     * 여기서는 기존 JPA 로직을 최대한 유지하되, Order 필드는 비워둡니다.
+     * 주문 상품 생성 팩토리 메서드. Item ID와 가격을 설정하며,
+     * ⭐ 재고 감소 로직은 OrderService에서 ItemRepository를 통해 명시적으로 처리됩니다.
      */
-    public static OrderItem createOrderItem(Item item, int count) {
+    public static OrderItem createOrderItem(Long itemId, int price, int count) {
         OrderItem orderItem = new OrderItem();
 
-        // Item 객체 대신 ID를 설정합니다.
-        orderItem.setItemId(item.getId());
+        // Item 객체 대신 ID와 가격을 설정합니다.
+        orderItem.setItemId(itemId);
         orderItem.setCount(count);
-        orderItem.setOrderPrice(item.getPrice());
+        orderItem.setOrderPrice(price);
 
         // ⭐ 재고 감소 로직: MyBatis 환경에서는 이 비즈니스 로직이
         // OrderService에서 ItemMapper를 호출하여 처리되어야 합니다.
@@ -110,8 +108,7 @@ public class OrderItem {
 
     /**
      * 주문 취소 로직.
-     * ⭐ 주의: MyBatis 환경에서는 이 메서드 호출이 ItemMapper의 재고 증가 쿼리를 유발하도록
-     * 서비스 계층에서 명시적으로 처리해야 합니다.
+     * ⭐ 재고 복구는 OrderService에서 ItemRepository를 통해 처리되어야 합니다.
      */
     public void cancel() {
         // this.getItem().addStock(count);

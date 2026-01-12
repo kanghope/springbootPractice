@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.shop.repository.CartItemRepository">
+
+    <resultMap id="cartItemResultMap" type="com.shop.entity.CartItem">
+        <id property="cartItemId" column="CART_ITEM_ID"/>
+        <result property="cartId" column="CART_ID"/>
+        <result property="itemId" column="ITEM_ID"/>
+        <result property="count" column="COUNT"/>
+        <result property="regTime" column="REG_TIME"/>
+    </resultMap>
+
+    <resultMap id="cartDetailDtoResultMap" type="com.shop.dto.CartDetailDto">
+        <id property="cartItemId" column="CART_ITEM_ID"/>
+        <result property="itemNm" column="ITEM_NM"/>
+        <result property="price" column="PRICE"/>
+        <result property="count" column="COUNT"/>
+        <result property="imgUrl" column="IMG_URL"/>
+    </resultMap>
+
+    <insert id="save" statementType="CALLABLE" parameterType="com.shop.entity.CartItem">
+        { CALL SP_CARTITEM_SAVE(
+        #{cartId},
+        #{itemId},
+        #{count}
+        ) }
+    </insert>
+
+    <select id="findById" statementType="CALLABLE" parameterType="map" resultMap="cartItemResultMap">
+        { CALL SP_CARTITEM_FIND_BY_ID (
+        #{cartItemId, mode=IN, jdbcType=NUMERIC},
+        #{p_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=cartItemResultMap}
+        ) }
+    </select>
+
+    <select id="findByCartIdAndItemId" statementType="CALLABLE" parameterType="map" resultMap="cartItemResultMap">
+        { CALL SP_CARTITEM_FIND_BY_CART_AND_ITEM (
+        #{cartId, mode=IN, jdbcType=NUMERIC},
+        #{itemId, mode=IN, jdbcType=NUMERIC},
+        #{p_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=cartItemResultMap}
+        ) }
+    </select>
+
+    <delete id="delete" statementType="CALLABLE" parameterType="long">
+        { CALL SP_CARTITEM_DELETE(
+        #{cartItemId}
+        ) }
+    </delete>
+
+    <update id="updateCount" statementType="CALLABLE" parameterType="com.shop.entity.CartItem">
+        { CALL SP_CARTITEM_UPDATE_COUNT(
+        #{cartItemId},
+        #{count}
+        ) }
+    </update>
+
+    <select id="findCartDetailDtoList" statementType="CALLABLE" parameterType="map" resultMap="cartDetailDtoResultMap">
+        { CALL SP_CARTITEM_FIND_DETAILS (
+        #{cartId, mode=IN, jdbcType=NUMERIC},
+        #{p_cursor, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=cartDetailDtoResultMap}
+        ) }
+    </select>
+</mapper>

@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 import com.shop.service.KakaoOauthService;
 import org.springframework.beans.factory.annotation.Value; // ⭐️ @Value를 위한 import
+import jakarta.servlet.http.HttpServletRequest; // 👈 필요시
+import jakarta.servlet.http.HttpServletResponse; // 👈 필수
+import jakarta.servlet.http.Cookie; // 👈 쿠키를 직접 설정/제거할 경우
 
 @RestController
 @RequestMapping("/api/auth")
@@ -34,6 +37,16 @@ public class AuthController {
     // React 앱의 소셜 로그인 콜백 처리 페이지
     private final String REACT_SOCIAL_CALLBACK_URL = "http://localhost:3000/auth/social/callback";
 
+    // ⭐️ MemberController에 있는 보조 메서드 재사용을 위해 MemberController의 의존성을 주입하거나,
+    // ⭐️ 이 메서드를 AuthController에 복사/붙여넣기 해야 합니다.
+    private void addTokenToCookie(HttpServletResponse response, String name, String value, long maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        // cookie.setSecure(true); // 운영 환경(HTTPS)에서는 필수
+        cookie.setMaxAge((int) maxAge);
+        response.addCookie(cookie);
+    }
     /**
      * 카카오 로그인 콜백 처리
      * 1. 카카오에서 인가 코드를 받아옴
@@ -42,12 +55,30 @@ public class AuthController {
      * React 앱의 콜백 페이지로 리디렉션
      */
     @GetMapping("/kakao/callback")
-    public ResponseEntity<Void> kakaoCallback(@RequestParam String code, @RequestParam(required = false) String state) {
+    public ResponseEntity<Void> kakaoCallback(@RequestParam String code, @RequestParam(required = false) String state,
+                                              // ⭐️ HttpServletResponse 인자 추가
+                                          HttpServletResponse response) {
         try {
             // 1 & 2. 인가 코드로 로그인/회원가입 처리 및 서비스 토큰 발급
             TokenResponseDto tokenResponse = authService.processKakaoLogin(code);
 
-            // 3. React 앱으로 리디렉션
+            // ⭐️ [핵심 수정] 쿼리 파라미터 대신 쿠키로 토큰 전달
+            // Access Token
+            addTokenToCookie(response, "accessToken", tokenResponse.getAccessToken(), tokenResponse.getAccessTokenExpiresIn() / 1000L);
+            // Refresh Token
+            addTokenToCookie(response, "refreshToken", tokenResponse.getRefreshToken(), 60 * 60 * 24 * 7L); // 예: 7일 (초)
+
+            // 응답 본문에서 민감한 토큰 정보를 제거 (클라이언트에서 JS로 읽을 필요가 없는 정보)
+            tokenResponse.setAccessToken(null);
+            tokenResponse.setRefreshToken(null);
+            tokenResponse.setGrantType(null);
+            tokenResponse.setAccessTokenExpiresIn(null);
+
+            // 리다이렉트 URL 생성: 토큰 제외, 사용자 역할/ID 등 JS에서 필요한 정보만 전달
+            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(REACT_SOCIAL_CALLBACK_URL)
+                    .queryParam("userId", tokenResponse.getId())
+                    .queryParam("role", tokenResponse.getRole());
+           /* // 3. React 앱으로 리디렉션
             // 발급된 토큰과 사용자 정보를 쿼리 파라미터로 추가
             UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(REACT_SOCIAL_CALLBACK_URL)
                     .queryParam("accessToken", tokenResponse.getAccessToken())
@@ -55,7 +86,7 @@ public class AuthController {
                     .queryParam("userId", tokenResponse.getId()) // ⭐️ AuthService에서 id도 반환하도록 수정 필요
                     .queryParam("role", tokenResponse.getRole())
                     .queryParam("accessTokenExpiresIn", tokenResponse.getAccessTokenExpiresIn());
-
+*/
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(uriBuilder.build().toUri());
 

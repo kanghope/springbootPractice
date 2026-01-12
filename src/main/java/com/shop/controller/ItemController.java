@@ -1,20 +1,13 @@
 package com.shop.controller;
-
 import com.shop.dto.ItemSearchDto;
-import com.shop.entity.Item;
-import org.apache.ibatis.annotations.Param;
-//import org.hibernate.query.Page;
-import org.hibernate.validator.constraints.ParameterScriptAssert;
-import org.springframework.boot.Banner;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-
-import org.springframework.ui.Model;
 import com.shop.dto.ItemFormDto;
 
 import com.shop.service.ItemService;
@@ -24,11 +17,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-//import java.awt.print.Pageable;
 import java.util.List;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.Map;
 
@@ -64,8 +56,8 @@ public class ItemController {
             // 💡 수정된 부분: List<String> 대신 Map<String, String> 반환
             Map<String, String> errorMap = bindingResult.getFieldErrors().stream()
                     .collect(Collectors.toMap(
-                            error -> error.getField(),// 키: 필드 이름 (예: itemNm, price)
-                            error -> error.getDefaultMessage() // 값: 에러 메시지
+                            FieldError::getField,// 키: 필드 이름 (예: itemNm, price)
+                            DefaultMessageSourceResolvable::getDefaultMessage // 값: 에러 메시지
                     ));
             return new ResponseEntity<>(errorMap, HttpStatus.BAD_REQUEST);
         }
@@ -83,7 +75,7 @@ public class ItemController {
         try {
             // 3. 상품 등록 서비스 호출
             // Spring Data save() 결과로 ID가 채워진 DTO를 반환받을 수 있습니다.
-            Long saveItemId = itemService.saveItem(itemFormDto, itemImgFileList);
+            Long saveItemId = itemService.saveItem(itemFormDto, Objects.requireNonNull(itemImgFileList));
 
             // 4. 등록 성공 (201 Created)
             return new ResponseEntity<>("상품등록성공, ID:" + saveItemId, HttpStatus.CREATED);
@@ -135,7 +127,7 @@ public class ItemController {
                                         BindingResult bindingResult, @RequestPart(value = "itemImgFile", required = false) List<MultipartFile> itemImgFileList)
     {
         // PathVariable의 ID와 DTO의 ID 일치 확인 (필요시)
-        if (itemFormDto.getId() == null || !itemFormDto.getId().equals(itemId)) {
+         if (itemFormDto.getId() == null || !itemFormDto.getId().equals(itemId)) {
             return new ResponseEntity<>("요청 경로와 상품 ID가 일치하지 않습니다.", HttpStatus.BAD_REQUEST);
         }
         // 1. 유효성 검사 실패 (400 Bad Request)
@@ -145,8 +137,11 @@ public class ItemController {
                     .collect(Collectors.toList());
             return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
         }
-
-        boolean isImgRequired = (itemImgFileList == null || itemImgFileList.get(0).isEmpty()) && itemFormDto.getId() == null;
+/*
+        boolean isImgRequired = (itemImgFileList == null ||
+                itemImgFileList.isEmpty() || // ⭐️ [추가] 리스트 자체가 비어있는지 확인
+                itemImgFileList.get(0).isEmpty()) &&
+                itemFormDto.getId() == null;
         if(isImgRequired)
         {
             //model.addAttribute("errorMessage","첫번째 상품 이미지는 필수 입력 값 입니다.");
@@ -154,7 +149,7 @@ public class ItemController {
 
             return new ResponseEntity<>("첫번째 상품 이미지는 필수 입력 값 입니다.", HttpStatus.BAD_REQUEST);
         }
-
+*/
         try
         {
             Long updatedItemId = itemService.updateItem(itemFormDto, itemImgFileList);
@@ -165,7 +160,8 @@ public class ItemController {
         catch(NoSuchElementException e)
         {
             // 404 Not Found
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "수정하려는 상품이 존재하지 않습니다.", e);
+            //throw new ResponseStatusException(HttpStatus.NOT_FOUND, "수정하려는 상품이 존재하지 않습니다.", e);
+            return new ResponseEntity<>("수정하려는 상품이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
         catch(Exception e)
         {
@@ -178,7 +174,8 @@ public class ItemController {
     // 4. GET /api/admin/items (상품 관리 목록 및 검색/페이징)
     // -------------------------------------------------------------------------
     // 기존의 /admin/items/{page} 방식 대신, 쿼리 파라미터로 page를 받는 RESTful 방식을 사용합니다.
-    @GetMapping(value = {"/items/","/items/{page}"})
+    //@GetMapping(value = {"/items/","/items/{page}"})
+    @GetMapping(value = "/items") // ⭐️ 경로 변수 없이 '/items'만 남깁니다.
     public ResponseEntity<Page<?>> itemManage(ItemSearchDto itemSearchDto, // 쿼리 파라미터로 페이지 번호를 받습니다. page는 0부터 시작합니다.
                                               @RequestParam(value = "page", defaultValue = "0") int page,
                                               @RequestParam(value = "size", defaultValue = "3") int size)

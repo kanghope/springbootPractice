@@ -53,7 +53,17 @@
     </sql>
 
     <select id="getAdminItemPage" parameterType="map" resultMap="itemResultMap">
-        SELECT *
+        SELECT
+        ITEM_ID,
+        ITEM_DETAIL,
+        ITEM_NM,
+        ITEM_SELL_STATUS,
+        PRICE,
+        REG_TIME,
+        STOCK_NUMBER,
+        UPDATE_TIME,
+        CREATED_BY,
+        MODIFIED_BY
         FROM ITEM
         <include refid="adminItemWhereClause"/>
         ORDER BY ITEM_ID DESC
@@ -67,7 +77,7 @@
         <include refid="adminItemWhereClause"/>
     </select>
 
-<!--
+
     <select id="getMainItemPage" parameterType="map" resultType="com.shop.dto.MainItemDto">
         SELECT
         I.ITEM_ID AS id,
@@ -88,7 +98,7 @@
         OFFSET #{offset} ROWS
         FETCH NEXT #{limit} ROWS ONLY
     </select>
--->
+
     <select id="getMainItemCount" parameterType="map" resultType="long">
         SELECT COUNT(I.ITEM_ID)
         FROM ITEM I

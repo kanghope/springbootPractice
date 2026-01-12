@@ -48,6 +48,8 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder()
                 .setSubject(String.valueOf(member.getId()))
                 .claim(AUTHORITIES_KEY, authorities)
+                .claim("name", member.getName())
+                .claim("email", member.getEmail())
                 .setExpiration(accessTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -89,9 +91,19 @@ public class JwtTokenProvider {
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 
+        String memberIdString = claims.getSubject();
+        String memberName = claims.get("name", String.class);//⭐️ name 클레임 추출
+        String memberEmail = claims.get("email", String.class);//
         // UserDetails 객체를 만들어서 Authentication 리턴
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
-
+        //UserDetails principal = new User(memberIdString, memberName, authorities);
+        // ⭐️ [수정] 기본 User 대신 CustomUserDetails 사용 ⭐️
+        // (CustomUserDetails에 memberIdString, memberName, authorities를 받는 생성자가 있다고 가정)
+        UserDetails principal = new com.shop.config.CustomUserDetails(
+                memberIdString,
+                memberName,
+                memberEmail,
+                authorities
+        );
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 

@@ -73,7 +73,7 @@ public class Order {
      */
     public void addOrderItem(OrderItem orderItem) {
         orderItems.add(orderItem);
-        // orderItem.setOrder(this); 로직은 OrderItem에 Order 객체 대신 OrderId 필드를 설정하는 것으로 대체되어야 합니다.
+        //orderItem.setOrder(this);// 로직은 OrderItem에 Order 객체 대신 OrderId 필드를 설정하는 것으로 대체되어야 합니다.
     }
 
     public List<OrderItem> getOrderItems() {
@@ -98,7 +98,7 @@ public class Order {
         }
 
         order.setOrderStatus(OrderStatus.ORDER);
-        //order.setOrderDate(LocalDateTime.now());
+        order.setOrderDate(LocalDateTime.now());
         return order;
     }
 

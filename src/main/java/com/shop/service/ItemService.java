@@ -1,6 +1,7 @@
 package com.shop.service;
 
 import com.shop.dto.ItemFormDto;
+import com.shop.dto.MainItemDto;
 import com.shop.entity.Item;
 import com.shop.entity.ItemImg;
 import com.shop.repository.ItemImgRepository;
@@ -40,7 +41,7 @@ public class ItemService {
 
     public Long saveItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception{
         // 🚨 1. 현재 사용자 ID 가져와서 설정
-        String currentUsername = com.shop.service.SecurityUtil.getCurrentUsername();
+        String currentUsername = SecurityUtil.getCurrentUsername();
         itemFormDto.setCreatedBy(currentUsername);
         itemFormDto.setModifiedBy(currentUsername);
         //상품 등록
@@ -116,29 +117,47 @@ public class ItemService {
         // 외래 키 (Item ID)
         Long itemId = item.getId();
 
-        // 기존 이미지 ID 리스트 (null 또는 0 값을 가질 수 있음)
+        // 기존 이미지 ID 리스트 (null 포함 5개)
         List<Long> itemImgIds = itemFormDto.getItemImgIds();
 
-        // 2. 이미지 등록/수정 (총 5개 슬롯 처리)
-        for (int i = 0; i < itemImgFileList.size(); i++) {
-            MultipartFile itemImgFile = itemImgFileList.get(i);
-            Long itemImgId = itemImgIds.get(i);
+        // itemImgFileList는 프론트에서 5개를 보장한다는 전제로 사용합니다.
+        List<MultipartFile> files = itemImgFileList != null ? itemImgFileList : new ArrayList<>();
 
-            // 첫 번째 이미지(i=0)는 대표 이미지로 설정
-            String repImgYn = (i == 0) ? "Y" : "N";
+        // ⭐️ [수정 핵심] 루프는 itemImgIds의 크기(프론트에서 보낸 5개)를 기준으로 돌립니다.
+        int loopCount = itemImgIds.size(); // 항상 5여야 함
 
-            // 2-1. Insert/Update 분기를 위해 필요한 정보가 담긴 ItemImg 객체 준비
+        for (int i = 0; i < loopCount; i++) {
+
+            // 🚨 [수정] 프론트에서 5개를 보냈다고 가정하고 files.get(i)를 호출합니다.
+            // itemImgFile은 실제 파일 또는 빈 Placeholder 파일입니다.
+            MultipartFile itemImgFile = null;
+            if (files.size() > i) {
+                itemImgFile = files.get(i);
+            } else {
+                // ⚠️ 프론트에서 5개 파일을 안 보낸 치명적인 오류 상황입니다.
+                // 이 경우에는 처리를 건너뛰거나 예외를 발생시켜야 합니다.
+                continue;
+            }
+
+            // 1. ItemImg 객체 생성 및 ID, Item 설정
             ItemImg itemImg = new ItemImg();
+            itemImg.setId(itemImgIds.get(i)); // ID가 null이면 신규, 아니면 기존
+            itemImg.setItem(item);
 
-            // A. UPDATE 조건 (기존 이미지): ID가 있으면 ItemImg 객체에 ID를 설정
-            itemImg.setId(itemImgId);
+            // 2. 대표 이미지 여부 설정
+            if(i == 0) {
+                itemImg.setRepImgYn("Y");
+            } else {
+                itemImg.setRepImgYn("N");
+            }
 
-            // B. INSERT 조건 (새 이미지): 외래 키와 대표 이미지 여부 설정
-            itemImg.setItemId(itemId);
-            itemImg.setRepImgYn(repImgYn);
-
-            // 3. ItemImgService로 처리 위임 (내부에서 INSERT/UPDATE 분기 처리)
+            // 3. ItemImgService로 처리 위임
+            // ⭐️ [핵심] 파일이 빈 파일(Placeholder)이더라도, ID가 null이면 INSERT를 시도하지 않도록
+            // ItemImgService에서 파일의 `.isEmpty()`를 체크합니다. (이전 답변에서 ItemImgService 로직이 보정됨)
             itemImgService.updateItemImg(itemImg, itemImgFile);
+
+            // 🚨 파일이 null인 경우의 continue 로직을 제거했습니다.
+            // 대신 files.size() < loopCount인 경우에만 continue를 유지합니다.
         }
 
         return item.getId();
@@ -161,7 +180,7 @@ public class ItemService {
         // 4. PageImpl 객체로 감싸 반환
         return new PageImpl<>(content, pageable, total);
     }
-/*
+
     // --- MyBatis 방식으로 getMainItemPage 수정 ---
     @Transactional(readOnly = true)
     public Page<MainItemDto> getMainItemPage(ItemSearchDto itemSearchDto, Pageable pageable){
@@ -171,15 +190,15 @@ public class ItemService {
         int limit = pageable.getPageSize();
 
         // 2. MyBatis로 목록 조회
-        List<MainItemDto> content = itemMapper.getMainItemPage(itemSearchDto, offset, limit);
+        List<MainItemDto> content = itemRepositoryCustom.getMainItemPage(itemSearchDto, offset, limit);
 
         // 3. MyBatis로 전체 카운트 조회
-        long total = itemMapper.getMainItemCount(itemSearchDto);
+        long total = itemRepositoryCustom.getMainItemCount(itemSearchDto);
 
         // 4. PageImpl 객체로 감싸 반환
         return new PageImpl<>(content, pageable, total);
     }
-    */
+
 
 /*
     public Long updateItem(ItemFormDto itemFormDto, List<MultipartFile> itemImgFileList) throws Exception{

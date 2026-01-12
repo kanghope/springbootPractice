@@ -1,5 +1,5 @@
 package com.shop.handler;
-
+import com.shop.exception.OutOfStockException; // ⭐️ OutOfStockException import
 import com.shop.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -148,6 +148,30 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .error(status.getReasonPhrase()) // Internal Server Error
                 .message("서버 내부 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.") // 내부 정보를 숨김
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+    /**
+     * 3. OutOfStockException (재고 부족 오류) 처리 - ⭐️ 새로 추가
+     * HTTP Status: 409 Conflict
+     */
+    @ExceptionHandler(OutOfStockException.class)
+    public ResponseEntity<ErrorResponse> handleOutOfStockException(
+            OutOfStockException e,
+            HttpServletRequest request) {
+
+        log.warn("Out of Stock Conflict: {} - Path: {}", e.getMessage(), request.getRequestURI());
+
+        HttpStatus status = HttpStatus.CONFLICT; // 409
+
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .status(status.value())
+                .timestamp(LocalDateTime.now())
+                .error(status.getReasonPhrase()) // Conflict
+                .message(e.getMessage()) // 재고 부족 상세 메시지
                 .path(request.getRequestURI())
                 .build();
 

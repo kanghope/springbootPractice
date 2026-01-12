@@ -18,6 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod; // HttpMethod를 사용하기 위해 추가
 
 import java.util.Arrays;
 import java.util.List;
@@ -58,6 +59,10 @@ public class SecurityConfig {
 
                 // 6. 인가(권한) 설정
                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+
+                        // ⭐️ [핵심 수정] OPTIONS 메서드 요청은 무조건 허용
+                        // CORS Preflight 요청이 인증/인가 필터를 통과할 수 있도록 합니다.
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 모든 OPTIONS 요청 허용
                         // 로그인, 회원가입 등 인증이 필요 없는 경로 허용
                         .requestMatchers("/api/auth/**",
                                 "/api/members/login",
@@ -69,11 +74,22 @@ public class SecurityConfig {
                                 "/images/**",
                                 "/css/**",
                                 "/js/**",
-                                "/img/**"
+                                "/img/**",
+                                // ⭐️ [필수 추가] 메인 페이지 상품 목록 API 허용
+                                "/api/items",
+                                "/api/item/**"
+
                         ).permitAll()
 
                         // 관리자 경로는 ADMIN 권한 요구
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+
+                        // ⭐️ [추가] 주문 관련 API는 인증된 사용자만 접근 가능하도록 명시
+                        .requestMatchers("/api/order","/api/order/**").authenticated()
+                        // ⭐️ [추가] 장바구니 관련 api는 인증된 사용자만 접근 가능하도록 명시
+                        .requestMatchers("/api/cart","/api/cart/**","/api/cart/items/**").authenticated()//.hasAnyRole("USER","ADMIN")
+
 
                         // 나머지 모든 API 경로는 인증(토큰) 필요
                         .anyRequest().authenticated()
@@ -100,7 +116,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // React 개발 환경의 Origin을 허용
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
 
@@ -109,3 +125,4 @@ public class SecurityConfig {
         return source;
     }
 }
+/*배포연습 2026년1월12일*/

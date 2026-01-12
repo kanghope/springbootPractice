@@ -93,7 +93,7 @@
         UPDATE ITEM_IMG
         SET
         IMG_NAME = #{imgName},
-        ITEM_ID = #{itemId}
+        ITEM_ID = #{itemId},
         ORI_IMG_NAME = #{oriImgName},
         IMG_URL = #{imgUrl},
         REP_IMG_YN = #{repImgYn},
