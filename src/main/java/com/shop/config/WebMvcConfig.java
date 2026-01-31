@@ -6,6 +6,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer{
+    /*
     @Value("${uploadPath}")
     String uploadPath;
 
@@ -14,5 +15,5 @@ public class WebMvcConfig implements WebMvcConfigurer{
     {
         registry.addResourceHandler("/images/**")
                 .addResourceLocations(uploadPath);
-    }
+    }*/
 }

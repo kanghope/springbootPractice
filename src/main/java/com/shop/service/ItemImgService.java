@@ -17,11 +17,13 @@ import java.util.Optional; // Optional 임포트 (findById 반환값 처리를 �
 public class ItemImgService {
 
     @Value("${itemImgLocation}")
-    private String itemImgLocation;
+    private String itemImgLocation;// "item" (버킷명)
+
+    @Value("${itemImgBaseUrl}")
+    private String itemImgBaseUrl; // "https://.../o/"
 
     // 💡 변경: ItemImgRepository 대신 ItemImgMapper 주입
     private final ItemImgRepository itemImgRepository;
-
     private final FileService fileService;
 
     public void saveItemImg(ItemImg itemImg, MultipartFile itemImgFile) throws Exception{
@@ -36,9 +38,18 @@ public class ItemImgService {
         String imgUrl = "";
 
         //파일 업로드
+        //기존 내부 하드디스크 저장용 소스 일단 주석
+        /*
         if(!StringUtils.isEmpty(oriImgName)){
             imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
             imgUrl = "/images/item/" + imgName;
+        }*/
+        // 파일 업로드 (내부적으로 OCI 서버로 전송됨)
+        if(!StringUtils.isEmpty(oriImgName))
+        {
+            imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
+            // 💡 클라우드 URL 생성: https://.../o/ + uuid.jpg
+            imgUrl = itemImgBaseUrl + imgName;
         }
 
         //상품 이미지 정보 저장
@@ -108,7 +119,8 @@ public class ItemImgService {
             // 새 파일 업로드 및 URL 생성
             String oriImgName = itemImgFile.getOriginalFilename();
             String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
-            String imgUrl = "/images/item/" + imgName;
+            //String imgUrl = "/images/item/" + imgName;
+            String imgUrl = itemImgBaseUrl + imgName;
 
             // 엔티티 업데이트 및 DB 반영
             savedItemImg.updateItemImg(oriImgName, imgName, imgUrl);
@@ -127,7 +139,8 @@ public class ItemImgService {
             // 파일 업로드 및 URL 생성
             String oriImgName = itemImgFile.getOriginalFilename();
             String imgName = fileService.uploadFile(itemImgLocation, oriImgName, itemImgFile.getBytes());
-            String imgUrl = "/images/item/" + imgName;
+            //String imgUrl = "/images/item/" + imgName;
+            String imgUrl = itemImgBaseUrl + imgName;
 
             // ItemImg 엔티티에 파일 정보 설정
             itemImg.updateItemImg(oriImgName, imgName, imgUrl);

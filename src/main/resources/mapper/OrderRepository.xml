@@ -32,17 +32,15 @@
 
     <select id="findOrders" resultMap="orderResultMap">
         SELECT
-        T.*
-        FROM (
-        SELECT
-        O.ORDER_ID, O.MEMBER_ID, O.ORDER_DATE, O.ORDER_STATUS,
-        ROWNUM AS RNUM
+        O.ORDER_ID, O.MEMBER_ID, O.ORDER_DATE, O.ORDER_STATUS
         FROM ORDERS O
         JOIN MEMBER M ON O.MEMBER_ID = M.MEMBER_ID
-        WHERE M.EMAIL = #{email}
+        WHERE M.EMAIL = 'tansang@nate.com'
         ORDER BY O.ORDER_DATE DESC
-        ) T
-        WHERE RNUM BETWEEN #{offset} + 1 AND #{offset} + #{limit}
+        OFFSET #{offset} ROWS
+        FETCH NEXT #{limit} ROWS ONLY
+
+
     </select>
 
     <select id="countOrder" resultType="Long">
