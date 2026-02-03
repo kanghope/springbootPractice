@@ -19,7 +19,7 @@ public class OciConfig {
     @Value("${oci.fingerprint}") private String fingerprint;
     @Value("${oci.private-key-path}") private String privateKeyPath;
     @Value("${oci.region}") private String region;
-
+//클라우드 환경의 오라클DB접속을 위해 필요
     @Bean // 이 어노테이션이 있어야 ObjectStorage를 주입할 수 있습니다.
     public ObjectStorage objectStorage() throws IOException {
         AuthenticationDetailsProvider provider = SimpleAuthenticationDetailsProvider.builder()
