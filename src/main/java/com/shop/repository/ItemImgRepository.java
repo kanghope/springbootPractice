@@ -29,6 +29,7 @@ public interface ItemImgRepository {
     //상품 이미지 수정(update) 파라미터로 ItemImg 객체를 받습니다.
     void update(ItemImg itemimg);
 
+
     // 예시: 상품 이미지 ID로 조회 (select)
     ItemImg findById(Long id);
 }

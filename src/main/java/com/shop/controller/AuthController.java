@@ -27,15 +27,25 @@ public class AuthController {
     private final AuthService authService;
 
     // ⭐️ 에러 발생 시 리다이렉트할 프론트엔드 로그인 페이지 URL 설정 (Query Parameter로 에러 전달)
-    @Value("${front.redirect-url.login:http://localhost:3000/members/login}")
+
+
+    @Value("${defaultDomain}")
+    private String defaultDomain;
+
+    @Value("${front.redirect-url.login:${defaultDomain}/members/login}")
     private String frontendLoginUrl;
 
-    // ⭐️ [추가] 에러 발생 시 리다이렉트할 프론트엔드 회원가입 페이지 URL 설정
-    @Value("${front.redirect-url.join:http://localhost:3000/members/new}")
+    @Value("${front.redirect-url.join:${defaultDomain}/members/new}")
     private String frontendJoinUrl;
 
     // React 앱의 소셜 로그인 콜백 처리 페이지
-    private final String REACT_SOCIAL_CALLBACK_URL = "http://localhost:3000/auth/social/callback";
+    //@Value("${defaultDomain}/auth/social/callback")
+    //private String REACT_SOCIAL_CALLBACK_URL;
+    private String REACT_SOCIAL_CALLBACK_URL() {
+        // defaultDomain이 "https://shop-app1.azurewebsites.net" 인지 확인하세요.
+        return defaultDomain + "/auth/social/callback";
+    }
+    //private final String REACT_SOCIAL_CALLBACK_URL = "${defaultDomain}/auth/social/callback";
 
     // ⭐️ MemberController에 있는 보조 메서드 재사용을 위해 MemberController의 의존성을 주입하거나,
     // ⭐️ 이 메서드를 AuthController에 복사/붙여넣기 해야 합니다.
@@ -43,7 +53,7 @@ public class AuthController {
         Cookie cookie = new Cookie(name, value);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        // cookie.setSecure(true); // 운영 환경(HTTPS)에서는 필수
+        cookie.setSecure(true); // 운영 환경(HTTPS)에서는 필수
         cookie.setMaxAge((int) maxAge);
         response.addCookie(cookie);
     }
@@ -75,7 +85,7 @@ public class AuthController {
             tokenResponse.setAccessTokenExpiresIn(null);
 
             // 리다이렉트 URL 생성: 토큰 제외, 사용자 역할/ID 등 JS에서 필요한 정보만 전달
-            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(REACT_SOCIAL_CALLBACK_URL)
+            UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUriString(REACT_SOCIAL_CALLBACK_URL())
                     .queryParam("userId", tokenResponse.getId())
                     .queryParam("role", tokenResponse.getRole());
            /* // 3. React 앱으로 리디렉션

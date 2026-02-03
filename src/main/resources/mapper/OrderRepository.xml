@@ -35,7 +35,7 @@
         O.ORDER_ID, O.MEMBER_ID, O.ORDER_DATE, O.ORDER_STATUS
         FROM ORDERS O
         JOIN MEMBER M ON O.MEMBER_ID = M.MEMBER_ID
-        WHERE M.EMAIL = 'tansang@nate.com'
+        WHERE M.EMAIL = #{email}
         ORDER BY O.ORDER_DATE DESC
         OFFSET #{offset} ROWS
         FETCH NEXT #{limit} ROWS ONLY
