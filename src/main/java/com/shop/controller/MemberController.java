@@ -23,7 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.validation.BindingResult;
 import jakarta.validation.Valid;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import jakarta.servlet.http.HttpServletRequest; // 👈 필요시
 import jakarta.servlet.http.HttpServletResponse; // 👈 필수
@@ -57,12 +59,17 @@ public class MemberController {
         // 1. 유효성 검사 실패 (400 Bad Request)
         // NOTE: MethodArgumentNotValidException은 GlobalExceptionHandler에서 처리됨
         if(bindingResult.hasErrors()){
-            List<String> errorMessages = bindingResult.getAllErrors().stream()
+            /*List<String> errorMessages = bindingResult.getAllErrors().stream()
                     .map(error -> error.getDefaultMessage())
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toList());*/
+            // 필드 에러를 Map 형태로 변환: { "name": "이름은 필수입니다.", "email": "형식이 맞지 않습니다." }
+            Map<String, String> filedErrors = new HashMap<>();
+            bindingResult.getFieldErrors().forEach(
+                    error -> filedErrors.put(error.getField(), error.getDefaultMessage())
+            );
             // GlobalExceptionHandler가 MethodArgumentNotValidException을 처리하도록 수정하려면 이 로컬 처리를 제거해야 합니다.
             // 현재 MemberController의 기존 로직을 최대한 유지하면서, BindingResult 처리는 그대로 둡니다.
-            return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(filedErrors, HttpStatus.BAD_REQUEST);
         }
 
         try {
