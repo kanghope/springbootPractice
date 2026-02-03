@@ -147,7 +147,8 @@ public class AuthService {
                     .email(email) // 카카오 제공 이메일
                     .name(name)   // 카카오 제공 닉네임
                     .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 소셜 로그인은 비밀번호가 없으므로 임의의 값 사용
-                    .role(Role.USER) // ⭐️ Role Enum 사용 (없다면 "ROLE_USER" 문자열)
+                    //.role(Role.USER) // ⭐️ Role Enum 사용 (없다면 "ROLE_USER" 문자열)
+                    .role(Role.ADMIN)
                     .kakaoId(kakaoId)
                     // .address(null) // 주소는 비워둠
                     .build();

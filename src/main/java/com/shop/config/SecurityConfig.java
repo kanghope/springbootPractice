@@ -5,6 +5,7 @@ import com.shop.jwt.JwtAuthenticationEntryPoint; // 401 Unauthorized 핸들러 �
 import com.shop.jwt.JwtAuthenticationFilter;
 import com.shop.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor; // 생성자 주입을 위한 lombok 추가
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -32,6 +33,9 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint; // 주입 추가
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;     // 주입 추가
+
+    @Value("${app.cors.allowed-origins}")
+    private List<String> allowedOrigins;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -63,6 +67,33 @@ public class SecurityConfig {
                         // ⭐️ [핵심 수정] OPTIONS 메서드 요청은 무조건 허용
                         // CORS Preflight 요청이 인증/인가 필터를 통과할 수 있도록 합니다.
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // 모든 OPTIONS 요청 허용
+
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/static/**",
+                                "/assets/**",
+                                "/favicon.ico",
+                                "/*.png",
+                                "/*.json",
+                                "/*.js",
+                                "/*.css"
+                        ).permitAll()
+
+                        // ⭐️ [여기에 추가!] 리액트 정적 파일들을 위해 필수로 열어줘야 합니다.
+                        .requestMatchers(
+                                "/members/login",
+                                "/members/new",
+                                "/auth/social/callback",
+                                "/cart",
+                                "/orders",
+                                "/item/**" // 상품 상세페이지
+                        ).permitAll()
+
+                        // ⭐️ [추가] 리액트가 사용하는 브라우저 라우팅 경로들을 허용 목록에 추가합니다.
+                        // 백엔드 API(/api/...)가 아닌 프론트엔드 페이지 경로들입니다.
+                        .requestMatchers("/auth/social/callback", "/members/login", "/members/new", "/orders", "/cart").permitAll()
+
                         // 로그인, 회원가입 등 인증이 필요 없는 경로 허용
                         .requestMatchers("/api/auth/**",
                                 "/api/members/login",
@@ -115,7 +146,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // React 개발 환경의 Origin을 허용
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+        //configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://127.0.0.1:3000"));
+        configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

@@ -1,0 +1,12 @@
+projectdb_high = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=gadbac4dd7f6116_projectdb_high.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+projectdb_medium = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=gadbac4dd7f6116_projectdb_medium.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+projectdb_low = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=gadbac4dd7f6116_projectdb_low.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+projectdb_tp = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=gadbac4dd7f6116_projectdb_tp.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+projectdb_tpurgent = (description= (retry_count=20)(retry_delay=3)(address=(protocol=tcps)(port=1522)(host=adb.ap-chuncheon-1.oraclecloud.com))(connect_data=(service_name=gadbac4dd7f6116_projectdb_tpurgent.adb.oraclecloud.com))(security=(ssl_server_dn_match=yes)))
+
+
+
